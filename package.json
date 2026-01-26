@@ -10,7 +10,6 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "'": "file:awesome.me/kit-KIT_CODE@latest'",
     "@fortawesome/fontawesome-free": "^7.1.0",
     "@fortawesome/react-fontawesome": "^3.1.1",
     "@tailwindcss/vite": "^4.1.18",
