@@ -7,6 +7,9 @@ import EditCollege from "./Pages/EditCollege/EditCollege";
 import EditUniversity from "./Pages/EditUniversity/EditUniversity";
 import Login from "./Pages/Login/Login";
 import ManageUniversities from "./Pages/ManageUniversities/ManageUniversities";
+import ManageNews from "./Pages/ManageNews/ManageNews";
+import AddNews from "./Pages/AddNews/AddNews";
+import EditNews from "./Pages/EditNews/EditNews";
 
 function App() {
   return (
@@ -20,6 +23,10 @@ function App() {
           <Route path="edit-university/:id" element={<EditUniversity />} />
           <Route path="add-college" element={<AddCollege />} />
           <Route path="edit-college/:uniId/:id" element={<EditCollege />} />
+          <Route path="news" element={<ManageNews />} />
+          <Route path="add-news" element={<AddNews />} />
+          <Route path="edit-news/:id" element={<EditNews />} />
+
       </Route>
       <Route path="*" element={<Navigate to="/login" />} />
     </Routes>

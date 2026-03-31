@@ -59,7 +59,6 @@ function AdminStats() {
         { title: "إجمالي الجامعات", value: stats.universitiesCount, icon: "fa-university", color: "from-blue-600 to-blue-400" },
         { title: "إجمالي الكليات", value: stats.collegesCount, icon: "fa-graduation-cap", color: "from-emerald-600 to-emerald-400" },
         { title: "أخبار منشورة", value: stats.newsCount, icon: "fa-newspaper", color: "from-purple-600 to-purple-400" },
-        { title: "طلبات التواصل", value: stats.contactsCount, icon: "fa-envelope-open-text", color: "from-amber-600 to-amber-400" },
     ];
 
     return (

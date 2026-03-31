@@ -52,7 +52,7 @@ function Sidebar({ isOpen, setIsOpen }) {
                         <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/30 text-white">
                             <i className="fa-solid fa-gauge-high"></i>
                         </div>
-                        <span className="text-xl font-black tracking-tight">تنسيقي <span className="text-blue-500">PRO</span></span>
+                        <span className="text-xl font-black tracking-tight">Tansiqy <span className="text-blue-500">Egy</span></span>
                     </div>
                     
                     <button onClick={() => setIsOpen(false)} className="lg:hidden text-slate-400 hover:text-white">

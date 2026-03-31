@@ -115,7 +115,7 @@ function Login() {
                     <p className="text-slate-400 text-xs uppercase tracking-widest font-bold">
                         &copy; {new Date().getFullYear()} Tansiky Dashboard System
                     </p> 
-                    <span className="text-xs font-bold text-slate-400">😂😂 Created By Eng Moheb & Eng Mena 😜😜</span>
+                    
                 </div>
             </div>
         </div>
