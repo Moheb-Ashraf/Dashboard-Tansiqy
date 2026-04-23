@@ -123,7 +123,7 @@ function EditNews() {
                         required 
                         value={newsData.description}
                         placeholder="تفاصيل الخبر..."
-                        className="w-full p-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-purple-500 min-h-[16rem]"
+                        className="w-full p-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-purple-500 min-h-64"
                         onChange={(e) => setNewsData({...newsData, description: e.target.value})}
                     ></textarea>
                 </div>

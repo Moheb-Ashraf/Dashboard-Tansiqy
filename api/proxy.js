@@ -24,16 +24,21 @@ export default async function handler(req, res) {
         let bodyData = req.body;
 
         // 4. إرسال الطلب للسيرفر
+        const requestHeaders = {
+            Authorization: req.headers.authorization || "",
+            Accept: req.headers.accept || "application/json",
+            "User-Agent": req.headers["user-agent"] || "Mozilla/5.0",
+        };
+
+        if (req.headers["content-type"]) {
+            requestHeaders["Content-Type"] = req.headers["content-type"];
+        }
+
         const response = await axios({
             method: req.method,
             url: targetUrl,
             data: bodyData,
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": req.headers.authorization || "",
-                "Accept": "application/json",
-                "User-Agent": "Mozilla/5.0" 
-            },
+            headers: requestHeaders,
             validateStatus: () => true 
         });
 

@@ -192,7 +192,7 @@ function AddUniversity() {
                     <div>
                         <label className="block text-sm font-bold mb-2 mr-1">وصف الجامعة</label>
                         <textarea 
-                            className="w-full p-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 min-h-[10rem]"
+                            className="w-full p-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 min-h-40"
                             placeholder="اكتب نبذة مختصرة عن تاريخ الجامعة ومميزاتها..."
                             value={formData.description}
                             onChange={(e) => setFormData({...formData, description: e.target.value})}

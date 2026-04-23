@@ -238,7 +238,7 @@ function EditCollege() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <input type="text" placeholder="العنوان التفصيلي للكلية" value={formData.location || ""} className="p-4 bg-slate-50 rounded-2xl outline-none" onChange={(e) => setFormData({ ...formData, location: e.target.value })} />
                         <input type="text" placeholder="رابط الموقع الرسمي: www.example.com" value={formData.officialWebsite || ""} className="p-4 bg-slate-50 rounded-2xl outline-none font-sans" onChange={(e) => setFormData({ ...formData, officialWebsite: e.target.value })} />
-                        <textarea placeholder="نبذة مختصرة عن الكلية وأقسامها..." value={formData.description || ""} className="md:col-span-2 p-4 bg-slate-50 rounded-2xl outline-none min-h-[12rem]" onChange={(e) => setFormData({ ...formData, description: e.target.value })}></textarea>
+                        <textarea placeholder="نبذة مختصرة عن الكلية وأقسامها..." value={formData.description || ""} className="md:col-span-2 p-4 bg-slate-50 rounded-2xl outline-none min-h-48" onChange={(e) => setFormData({ ...formData, description: e.target.value })}></textarea>
                     </div>
                 </div>
 

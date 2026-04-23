@@ -82,7 +82,7 @@ function AddNews() {
                     <textarea 
                         required 
                         placeholder="اكتب محتوى الخبر بالتفصيل هنا..."
-                        className="w-full p-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-purple-500 min-h-[12rem]"
+                        className="w-full p-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-purple-500 min-h-48"
                         onChange={(e) => setNewsData({...newsData, description: e.target.value})}
                     ></textarea>
                 </div>

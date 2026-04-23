@@ -268,7 +268,7 @@ function EditUniversity() {
                 <div className="bg-white p-8 md:p-12 rounded-[2.5rem] shadow-sm border border-slate-100">
                     <label className="block text-sm font-bold mb-4">وصف الجامعة</label>
                     <textarea 
-                        className="w-full p-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 min-h-[12rem]"
+                        className="w-full p-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 min-h-48"
                         value={formData.description}
                         onChange={(e) => setFormData({...formData, description: e.target.value})}
                     ></textarea>

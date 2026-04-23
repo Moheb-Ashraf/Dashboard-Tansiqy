@@ -198,7 +198,7 @@ function AddCollege() {
                         </div>
                         <div className="md:col-span-2">
                             <label className="block text-sm font-bold mb-2">وصف الكلية</label>
-                            <textarea className="w-full p-4 bg-slate-50 rounded-2xl outline-none focus:ring-2 focus:ring-slate-400 min-h-[12rem]"
+                            <textarea className="w-full p-4 bg-slate-50 rounded-2xl outline-none focus:ring-2 focus:ring-slate-400 min-h-48"
                                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}></textarea>
                         </div>
                     </div>
