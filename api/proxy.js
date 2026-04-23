@@ -1,5 +1,21 @@
 import axios from "axios";
 
+export const config = {
+    api: {
+        bodyParser: false, // إيقاف الـ body parser عشان نتحكم فيه بنفسنا
+    },
+};
+
+// Helper لقراءة الـ raw body كـ Buffer
+function getRawBody(req) {
+    return new Promise((resolve, reject) => {
+        const chunks = [];
+        req.on("data", (chunk) => chunks.push(chunk));
+        req.on("end", () => resolve(Buffer.concat(chunks)));
+        req.on("error", reject);
+    });
+}
+
 export default async function handler(req, res) {
     // 1. إعدادات CORS
     res.setHeader("Access-Control-Allow-Credentials", "true");
@@ -18,18 +34,19 @@ export default async function handler(req, res) {
     }
 
     try {
-        const targetUrl = `http://tansiqy.runasp.net/${path}`;
-        
-        // 3. معالجة البيانات (Vercel يجهز الـ body تلقائياً)
-        let bodyData = req.body;
+        // استخدام https مش http
+        const targetUrl = `https://tansiqy.runasp.net/${path}`;
 
-        // 4. إرسال الطلب للسيرفر
+        // قراءة الـ raw body بدون أي تعديل
+        const rawBody = await getRawBody(req);
+
         const requestHeaders = {
             Authorization: req.headers.authorization || "",
             Accept: req.headers.accept || "application/json",
             "User-Agent": req.headers["user-agent"] || "Mozilla/5.0",
         };
 
+        // تمرير الـ Content-Type كما هو (مع الـ boundary الخاص بـ multipart)
         if (req.headers["content-type"]) {
             requestHeaders["Content-Type"] = req.headers["content-type"];
         }
@@ -37,19 +54,24 @@ export default async function handler(req, res) {
         const response = await axios({
             method: req.method,
             url: targetUrl,
-            data: bodyData,
+            // تمرير الـ Buffer مباشرة بدون تحويل
+            data: rawBody.length > 0 ? rawBody : undefined,
             headers: requestHeaders,
-            validateStatus: () => true 
+            validateStatus: () => true,
+            // منع axios من تحويل البيانات
+            transformRequest: [(data) => data],
+            maxBodyLength: Infinity,
+            maxContentLength: Infinity,
         });
 
-        // 5. الرد للفرونت إند
+        // الرد للفرونت إند
         return res.status(response.status).json(response.data);
 
     } catch (err) {
         console.error("PROXY_ERROR:", err.message);
-        return res.status(500).json({ 
-            error: "Proxy internal error", 
-            message: err.message 
+        return res.status(500).json({
+            error: "Proxy internal error",
+            message: err.message
         });
     }
 }
