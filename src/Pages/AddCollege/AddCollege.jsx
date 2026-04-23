@@ -116,7 +116,7 @@ function AddCollege() {
         });
 
         Swal.fire("نجاح!", "تمت إضافة الكلية والأقسام بنجاح", "success");
-        navigate("/admin/universities");
+        
     } catch (error) {
         console.error("تفاصيل خطأ السيرفر:", error.response?.data);
         

@@ -181,7 +181,7 @@ function EditCollege() {
                 showConfirmButton: false 
             });
 
-            setTimeout(() => navigate("/admin/universities"), 2000);
+            
         } 
         catch (error) { 
             const serverErrors = error.response?.data?.errors;

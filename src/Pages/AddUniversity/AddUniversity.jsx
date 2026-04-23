@@ -52,7 +52,7 @@ function AddUniversity() {
                     text: 'تم إنشاء الجامعة الجديدة بنجاح في قاعدة البيانات',
                     confirmButtonText: 'حسناً'
                 });
-                navigate("/admin/universities"); 
+                
             }
         } catch (error) {
             console.error(error);

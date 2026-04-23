@@ -48,7 +48,7 @@ function EditUniversity() {
         } 
         catch (error) {
             Swal.fire("خطأ", "تعذر جلب بيانات الجامعة", "error");
-            navigate("/admin/universities");
+            
         } 
         finally {
             setFetching(false);
@@ -121,7 +121,7 @@ function EditUniversity() {
                     timer: 2000,
                     showConfirmButton: false
                 });
-                setTimeout(() => navigate("/admin/universities"), 2000);
+                
             }
         } catch (error) {
             Swal.fire({
