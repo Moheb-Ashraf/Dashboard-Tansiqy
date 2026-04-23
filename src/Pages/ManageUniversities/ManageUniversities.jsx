@@ -75,6 +75,7 @@ export default function ManageUniversities() {
                 Swal.fire('تم!', 'تم الحذف بنجاح.', 'success');
                 fetchUniversities();
             } catch (error) {
+                console.error(error);
                 Swal.fire('خطأ', 'فشل الحذف، تأكد من الصلاحيات.', 'error');
             }
         }

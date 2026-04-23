@@ -1,3 +1,4 @@
+import PropTypes from "prop-types";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 
@@ -93,5 +94,10 @@ function Sidebar({ isOpen, setIsOpen }) {
         </>
     );
 }
+
+Sidebar.propTypes = {
+    isOpen: PropTypes.bool.isRequired,
+    setIsOpen: PropTypes.func.isRequired,
+};
 
 export default Sidebar;

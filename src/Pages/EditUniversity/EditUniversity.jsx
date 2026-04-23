@@ -1,5 +1,5 @@
 import axios from "axios";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import Swal from "sweetalert2";
 import AdminLoading from "../../Components/AdminLoading";
@@ -25,9 +25,7 @@ function EditUniversity() {
         description: ""
     });
 
-    const token = localStorage.getItem("adminToken");
-
-    async function fetchCurrentData() {
+    const fetchCurrentData = useCallback(async () => {
         try {
             setFetching(true);
             const { data } = await axios.get(`/api/proxy?path=api/Universities/${id}`);
@@ -45,15 +43,13 @@ function EditUniversity() {
                 description: data.description || ""
             });
             setColleges(data.colleges || []);
-        } 
-        catch (error) {
+        } catch (error) {
+            console.error(error);
             Swal.fire("خطأ", "تعذر جلب بيانات الجامعة", "error");
-            
-        } 
-        finally {
+        } finally {
             setFetching(false);
         }
-    }
+    }, [id]);
 
 
     // delete collage 
@@ -97,7 +93,7 @@ function EditUniversity() {
 
     useEffect(() => {
         fetchCurrentData();
-    }, [id]);
+    }, [fetchCurrentData]);
 
     async function handleUpdate(e) {
         e.preventDefault();
@@ -272,7 +268,7 @@ function EditUniversity() {
                 <div className="bg-white p-8 md:p-12 rounded-[2.5rem] shadow-sm border border-slate-100">
                     <label className="block text-sm font-bold mb-4">وصف الجامعة</label>
                     <textarea 
-                        className="w-full p-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 min-h-50"
+                        className="w-full p-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 min-h-[12rem]"
                         value={formData.description}
                         onChange={(e) => setFormData({...formData, description: e.target.value})}
                     ></textarea>

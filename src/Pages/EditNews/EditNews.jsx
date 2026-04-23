@@ -20,30 +20,31 @@ function EditNews() {
     const token = localStorage.getItem("adminToken");
 
     // fetch current news data
-    async function fetchNewsDetail() {
-        try {
-            setFetching(true);
-            // We fetch all news and find the one with the matching ID
-            const { data } = await axios.get("/api/proxy?path=api/News");
-            const currentNews = data.find(n => n.id === parseInt(id));
+    useEffect(() => {
+        async function fetchNewsDetail() {
+            try {
+                setFetching(true);
+                const { data } = await axios.get("/api/proxy?path=api/News");
+                const currentNews = data.find(n => n.id === parseInt(id));
 
-            if (currentNews) {
-                setNewsData({
-                    id: currentNews.id,
-                    title: currentNews.title || "",
-                    // format date for input type="date" (YYYY-MM-DD)
-                    date: currentNews.date ? currentNews.date.split('T')[0] : "",
-                    description: currentNews.description || ""
-                });
+                if (currentNews) {
+                    setNewsData({
+                        id: currentNews.id,
+                        title: currentNews.title || "",
+                        date: currentNews.date ? currentNews.date.split('T')[0] : "",
+                        description: currentNews.description || ""
+                    });
+                }
+            } catch (error) {
+                console.error(error);
+                Swal.fire("Error", "Failed to fetch news data", "error");
+            } finally {
+                setFetching(false);
             }
-        } catch (error) {
-            Swal.fire("Error", "Failed to fetch news data", "error");
-        } finally {
-            setFetching(false);
         }
-    }
 
-    useEffect(() => { fetchNewsDetail(); }, [id]);
+        fetchNewsDetail();
+    }, [id]);
 
     // handle patch request
     async function handleUpdate(e) {
@@ -74,6 +75,7 @@ function EditNews() {
             });
             setTimeout(() => navigate("/admin/news"), 2000);
         } catch (error) {
+            console.error(error);
             Swal.fire("Error", "Failed to update news", "error");
         } finally {
             setLoading(false);
@@ -121,7 +123,7 @@ function EditNews() {
                         required 
                         value={newsData.description}
                         placeholder="تفاصيل الخبر..."
-                        className="w-full p-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-purple-500 min-h-62.5"
+                        className="w-full p-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-purple-500 min-h-[16rem]"
                         onChange={(e) => setNewsData({...newsData, description: e.target.value})}
                     ></textarea>
                 </div>

@@ -37,6 +37,7 @@ function AddNews() {
             Swal.fire("نجاح", "تم نشر الخبر بنجاح", "success");
             navigate("/admin/news");
         } catch (error) {
+            console.error(error);
             Swal.fire("خطأ", "فشل في نشر الخبر، تأكد من الصلاحيات", "error");
         } finally {
             setLoading(false);
@@ -81,7 +82,7 @@ function AddNews() {
                     <textarea 
                         required 
                         placeholder="اكتب محتوى الخبر بالتفصيل هنا..."
-                        className="w-full p-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-purple-500 min-h-50"
+                        className="w-full p-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-purple-500 min-h-[12rem]"
                         onChange={(e) => setNewsData({...newsData, description: e.target.value})}
                     ></textarea>
                 </div>

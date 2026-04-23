@@ -20,6 +20,7 @@ function AddUniversity() {
         description: "",
         branches: [] 
     });
+    const [imageFile, setImageFile] = useState(null);
 
     const universityTypes = [
         { id: 1, name: "حكومية" }, { id: 2, name: "خاصة" }, { id: 3, name: "أهلية" },
@@ -36,12 +37,27 @@ function AddUniversity() {
         setLoading(true);
 
         const token = localStorage.getItem("adminToken");
+        const payload = new FormData();
+
+        payload.append("NameAr", formData.nameAr);
+        payload.append("NameEn", formData.nameEn);
+        payload.append("Type", formData.type);
+        payload.append("OfficialWebsite", formData.officialWebsite);
+        payload.append("Location", formData.location);
+        payload.append("Governorate", formData.governorate);
+        payload.append("LastYearCoordination", formData.lastYearCoordination);
+        payload.append("Fees", formData.fees);
+        payload.append("InformationSources", formData.informationSources);
+        payload.append("Description", formData.description);
+
+        if (imageFile) {
+            payload.append("ImageFile", imageFile);
+        }
 
         try {
-            const response = await axios.post("/api/proxy?path=api/Universities", formData, {
+            const response = await axios.post("/api/proxy?path=api/Universities", payload, {
                 headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
+                    'Authorization': `Bearer ${token}`
                 }
             });
 
@@ -52,7 +68,7 @@ function AddUniversity() {
                     text: 'تم إنشاء الجامعة الجديدة بنجاح في قاعدة البيانات',
                     confirmButtonText: 'حسناً'
                 });
-                
+                navigate("/admin/universities");
             }
         } catch (error) {
             console.error(error);
@@ -88,6 +104,7 @@ function AddUniversity() {
                             type="text" 
                             className="w-full p-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 transition-all"
                             placeholder="مثال: جامعة القاهرة"
+                            value={formData.nameAr}
                             onChange={(e) => setFormData({...formData, nameAr: e.target.value})}
                         />
                     </div>
@@ -98,6 +115,7 @@ function AddUniversity() {
                             type="text" 
                             className="w-full p-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 transition-all font-sans"
                             placeholder="Example: Cairo University"
+                            value={formData.nameEn}
                             onChange={(e) => setFormData({...formData, nameEn: e.target.value})}
                         />
                     </div>
@@ -107,6 +125,7 @@ function AddUniversity() {
                     <div>
                         <label className="block text-sm font-bold mb-2 mr-1">نوع الجامعة</label>
                         <select 
+                            value={formData.type}
                             className="w-full p-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-blue-500"
                             onChange={(e) => setFormData({...formData, type: parseInt(e.target.value)})}
                         >
@@ -116,6 +135,7 @@ function AddUniversity() {
                     <div>
                         <label className="block text-sm font-bold mb-2 mr-1">المحافظة</label>
                         <select 
+                            value={formData.governorate}
                             className="w-full p-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-blue-500"
                             onChange={(e) => setFormData({...formData, governorate: parseInt(e.target.value)})}
                         >
@@ -129,39 +149,77 @@ function AddUniversity() {
                             step="0.1"
                             className="w-full p-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 font-sans"
                             placeholder="85.5"
-                            onChange={(e) => setFormData({...formData, lastYearCoordination: parseFloat(e.target.value)})}
+                            value={formData.lastYearCoordination || ""}
+                            onChange={(e) => setFormData({...formData, lastYearCoordination: e.target.value ? parseFloat(e.target.value) : 0})}
                         />
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div>
                         <label className="block text-sm font-bold mb-2 mr-1">المصاريف السنوية (ج.م)</label>
                         <input 
                             type="number" 
+                            value={formData.fees || ""}
                             className="w-full p-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 font-sans"
                             placeholder="50000"
-                            onChange={(e) => setFormData({...formData, fees: parseFloat(e.target.value)})}
+                            onChange={(e) => setFormData({...formData, fees: e.target.value ? parseFloat(e.target.value) : 0})}
                         />
                     </div>
                     <div>
                         <label className="block text-sm font-bold mb-2 mr-1">الموقع الرسمي</label>
                         <input 
                             type="text" 
+                            value={formData.officialWebsite}
                             className="w-full p-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 font-sans"
                             placeholder="www.university.edu.eg"
                             onChange={(e) => setFormData({...formData, officialWebsite: e.target.value})}
                         />
                     </div>
+                    <div>
+                        <label className="block text-sm font-bold mb-2 mr-1">الموقع الجغرافي</label>
+                        <input 
+                            type="text" 
+                            value={formData.location}
+                            className="w-full p-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 font-sans"
+                            placeholder="مثال: مدينة نصر"
+                            onChange={(e) => setFormData({...formData, location: e.target.value})}
+                        />
+                    </div>
                 </div>
 
-                <div>
-                    <label className="block text-sm font-bold mb-2 mr-1">وصف الجامعة</label>
-                    <textarea 
-                        className="w-full p-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 min-h-37.5"
-                        placeholder="اكتب نبذة مختصرة عن تاريخ الجامعة ومميزاتها..."
-                        onChange={(e) => setFormData({...formData, description: e.target.value})}
-                    ></textarea>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div>
+                        <label className="block text-sm font-bold mb-2 mr-1">وصف الجامعة</label>
+                        <textarea 
+                            className="w-full p-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 min-h-[10rem]"
+                            placeholder="اكتب نبذة مختصرة عن تاريخ الجامعة ومميزاتها..."
+                            value={formData.description}
+                            onChange={(e) => setFormData({...formData, description: e.target.value})}
+                        ></textarea>
+                    </div>
+
+                    <div className="space-y-4">
+                        <div>
+                            <label className="block text-sm font-bold mb-2 mr-1">صورة الجامعة (اختياري)</label>
+                            <input 
+                                type="file"
+                                accept="image/*"
+                                className="w-full text-sm text-slate-600 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                                onChange={(e) => setImageFile(e.target.files?.[0] || null)}
+                            />
+                            <p className="text-xs text-slate-400 mt-2">يمكنك رفع صورة للشعار أو مقر الجامعة لتظهر في النظام.</p>
+                        </div>
+
+                        <div className="bg-slate-50 rounded-3xl p-5 border border-slate-100 shadow-sm">
+                            <h2 className="text-base font-black text-slate-800 mb-3">نصائح لإدخال البيانات</h2>
+                            <ul className="space-y-2 text-slate-600 text-sm list-disc list-inside">
+                                <li>استخدم اسم الجامعة الرسمي الكامل.</li>
+                                <li>أضف الموقع الرسمي بدون https:// أو بدون خطأ.</li>
+                                <li>يمكنك ترك صورة الجامعة فارغة إذا لم تكن متوفرة.</li>
+                            </ul>
+                        </div>
+                    </div>
                 </div>
 
                 {/* زر الإرسال */}

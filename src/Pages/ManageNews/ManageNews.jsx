@@ -16,7 +16,7 @@ function ManageNews() {
             const { data } = await axios.get("/api/proxy?path=api/News");
             setNews(data);
         } catch (error) {
-            console.error("Fetch News Error");
+            console.error("Fetch News Error", error);
         } finally {
             setLoading(false);
         }

@@ -31,7 +31,7 @@ function AdminStats() {
                 const resNews = await axios.get("/api/proxy?path=api/News").catch(() => ({ data: [] }));
                 totalNews = Array.isArray(resNews.data) ? resNews.data.length : 0;
             } 
-            catch (e) { console.log("News API not available"); }
+            catch (error) { console.log("News API not available", error); }
 
             setStats({
                 universitiesCount: allUniversities.length,
@@ -75,7 +75,7 @@ function AdminStats() {
                             <p className="text-slate-400 text-sm font-bold">{card.title}</p>
                             <h3 className="text-3xl font-black text-slate-800 tracking-tight">{card.value}</h3>
                         </div>
-                        <div className={`w-14 h-14 bg-linear-to-br ${card.color} rounded-2xl flex items-center justify-center text-white shadow-lg`}>
+                        <div className={`w-14 h-14 bg-gradient-to-br ${card.color} rounded-2xl flex items-center justify-center text-white shadow-lg`}>
                             <i className={`fa-solid ${card.icon} text-xl`}></i>
                         </div>
                     </div>

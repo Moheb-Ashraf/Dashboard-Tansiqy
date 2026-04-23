@@ -1,5 +1,5 @@
 import axios from "axios";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Swal from "sweetalert2";
 import AdminLoading from "../../Components/AdminLoading";
@@ -44,8 +44,7 @@ function EditCollege() {
 
     const token = localStorage.getItem("adminToken");
 
-    // get data
-    async function fetchData() {
+    const loadCollegeData = useCallback(async () => {
         try {
             setFetching(true);
             const types = [1, 2, 3, 4, 5, 6];
@@ -71,13 +70,16 @@ function EditCollege() {
                 setDepartments(currentCollege.departments || []);
             }
         } catch (error) {
+            console.error(error);
             Swal.fire("خطأ", "تعذر جلب بيانات الكلية", "error");
         } finally {
             setFetching(false);
         }
-    }
+    }, [id, uniId]);
 
-    useEffect(() => { fetchData(); }, [id, uniId]);
+    useEffect(() => {
+        loadCollegeData();
+    }, [loadCollegeData]);
 
     // delete department
     async function handleDeleteDepartment(deptId) {
@@ -102,6 +104,7 @@ function EditCollege() {
                 setDepartments(departments.filter(d => d.id !== deptId));
                 Swal.fire('تم!', 'تم حذف القسم بنجاح.', 'success');
             } catch (error) {
+                console.error(error);
                 Swal.fire('خطأ', 'فشل حذف القسم', 'error');
             }
         }
@@ -126,8 +129,11 @@ function EditCollege() {
             }
             setDeptFormData({ id: 0, nameAr: "", nameEn: "", collegeId: parseInt(id), description: "", studyType: 1 });
             setIsEditingDept(false);
-            fetchData();
-        } catch (error) { Swal.fire("خطأ", "حدثت مشكلة في القسم", "error"); }
+            loadCollegeData();
+        } catch (error) {
+            console.error(error);
+            Swal.fire("خطأ", "حدثت مشكلة في القسم", "error");
+        }
     }
 
     const prepareEditDept = (dept) => {
@@ -148,10 +154,11 @@ function EditCollege() {
             web = `https://${web}`;
         }
 
-        const { departments: _, ...cleanData } = formData; 
+        const dataToSend = { ...formData };
+        delete dataToSend.departments;
 
-        const dataToSend = {
-            ...cleanData,
+        const payload = {
+            ...dataToSend,
             officialWebsite: web,
             universityId: parseInt(formData.universityId),
             fees: parseFloat(formData.fees) || 0,
@@ -166,7 +173,7 @@ function EditCollege() {
 
         try {
             await axios.patch(`/api/proxy?path=api/Universities/colleges/${id}`, 
-                dataToSend, {
+                payload, {
                     headers: { 
                         'Authorization': `Bearer ${token}`, 
                         'Content-Type': 'application/json' 
@@ -231,7 +238,7 @@ function EditCollege() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <input type="text" placeholder="العنوان التفصيلي للكلية" value={formData.location || ""} className="p-4 bg-slate-50 rounded-2xl outline-none" onChange={(e) => setFormData({ ...formData, location: e.target.value })} />
                         <input type="text" placeholder="رابط الموقع الرسمي: www.example.com" value={formData.officialWebsite || ""} className="p-4 bg-slate-50 rounded-2xl outline-none font-sans" onChange={(e) => setFormData({ ...formData, officialWebsite: e.target.value })} />
-                        <textarea placeholder="نبذة مختصرة عن الكلية وأقسامها..." value={formData.description || ""} className="md:col-span-2 p-4 bg-slate-50 rounded-2xl outline-none min-h-25" onChange={(e) => setFormData({ ...formData, description: e.target.value })}></textarea>
+                        <textarea placeholder="نبذة مختصرة عن الكلية وأقسامها..." value={formData.description || ""} className="md:col-span-2 p-4 bg-slate-50 rounded-2xl outline-none min-h-[12rem]" onChange={(e) => setFormData({ ...formData, description: e.target.value })}></textarea>
                     </div>
                 </div>
 
