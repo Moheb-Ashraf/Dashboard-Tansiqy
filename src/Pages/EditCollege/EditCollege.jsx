@@ -1,7 +1,7 @@
-import axios from "axios";
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Swal from "sweetalert2";
+import { api, getErrorMessage } from "../../api/client";
 import AdminLoading from "../../Components/AdminLoading";
 
 function EditCollege() {
@@ -42,18 +42,17 @@ function EditCollege() {
         additionalFees: 0
     });
 
-    const token = localStorage.getItem("adminToken");
-
     const loadCollegeData = useCallback(async () => {
         try {
             setFetching(true);
             const types = [1, 2, 3, 4, 5, 6];
-            const requests = types.map(t => axios.get(`/api/proxy?path=api/Universities/type/${t}`).catch(() => ({ data: [] })));
+            const requests = types.map(t => api.get(`api/Universities/type/${t}`).catch(() => ({ data: [] })));
             const responses = await Promise.all(requests);
-            setUniversities(responses.flatMap(res => res.data));
+            setUniversities(responses.flatMap(res => (Array.isArray(res.data) ? res.data : [])));
 
-            const { data: colleges } = await axios.get(`/api/proxy?path=api/Universities/${uniId}/colleges`);
-            const currentCollege = colleges.find(c => c.id === parseInt(id));
+            const { data: colleges } = await api.get(`api/Universities/${uniId}/colleges`);
+            const collegeList = Array.isArray(colleges) ? colleges : [];
+            const currentCollege = collegeList.find(c => c.id === parseInt(id));
 
             if (currentCollege) {
                 setFormData({
@@ -96,10 +95,7 @@ function EditCollege() {
 
         if (result.isConfirmed) {
             try {
-                const token = localStorage.getItem("adminToken");
-                await axios.delete(`/api/proxy?path=api/Universities/departments/${deptId}`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
+                await api.delete(`api/Universities/departments/${deptId}`);
 
                 setDepartments(departments.filter(d => d.id !== deptId));
                 Swal.fire('تم!', 'تم حذف القسم بنجاح.', 'success');
@@ -116,13 +112,13 @@ function EditCollege() {
         if (!deptFormData.nameAr) return Swal.fire("تنبيه", "يرجى كتابة اسم القسم", "info");
         try {
             if (isEditingDept) {
-                await axios.patch(`/api/proxy?path=api/Universities/departments/${deptFormData.id}`, deptFormData, {
-                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
+                await api.patch(`api/Universities/departments/${deptFormData.id}`, deptFormData, {
+                    headers: { 'Content-Type': 'application/json' }
                 });
                 Swal.fire("تم!", "تم تحديث بيانات القسم", "success");
             } else {
-                const { data } = await axios.post("/api/proxy?path=api/Universities/departments", deptFormData, {
-                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
+                const { data } = await api.post("api/Universities/departments", deptFormData, {
+                    headers: { 'Content-Type': 'application/json' }
                 });
                 setDepartments([...departments, data]);
                 Swal.fire("نجاح", "تم إضافة القسم الجديد", "success");
@@ -172,12 +168,8 @@ function EditCollege() {
         };
 
         try {
-            await axios.patch(`/api/proxy?path=api/Universities/colleges/${id}`, 
-                payload, {
-                    headers: { 
-                        'Authorization': `Bearer ${token}`, 
-                        'Content-Type': 'application/json' 
-                    }
+            await api.patch(`api/Universities/colleges/${id}`, payload, {
+                headers: { 'Content-Type': 'application/json' }
             });
 
             Swal.fire({ 
@@ -191,12 +183,7 @@ function EditCollege() {
             
         } 
         catch (error) { 
-            const serverErrors = error.response?.data?.errors;
-            let errorMsg = "فشل التحديث، تأكد من صحة البيانات";
-            if (serverErrors) {
-                errorMsg = Object.values(serverErrors).flat().join(" | ");
-            }
-            Swal.fire("خطأ في الإرسال", errorMsg, "error"); 
+            Swal.fire("خطأ في الإرسال", getErrorMessage(error, "فشل التحديث، تأكد من صحة البيانات"), "error"); 
         } 
         finally { setLoading(false); }
     }

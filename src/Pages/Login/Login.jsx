@@ -1,7 +1,7 @@
-import axios from "axios";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
+import { api, getErrorMessage } from "../../api/client";
 
 function Login() {
     const [email, setEmail] = useState("");
@@ -14,15 +14,16 @@ function Login() {
         setLoading(true);
 
         try {
-            const { data } = await axios.post("/api/proxy?path=api/Auth/login", {
-                email: email,
-                password: password, 
-                
+            const { data, status } = await api.post("api/Auth/login", {
+                email,
+                password,
             });
 
-            if (data.token || data.jwtToken) {
-                localStorage.setItem("adminToken", data.token || data.jwtToken);
-                
+            const token = data?.token || data?.jwtToken;
+
+            if ((status === 200 || status === 201) && token) {
+                localStorage.setItem("adminToken", token);
+
                 Swal.fire({
                     icon: "success",
                     title: "تم التحقق بنجاح",
@@ -32,14 +33,20 @@ function Login() {
                 });
 
                 navigate("/admin/stats");
+                return;
             }
 
+            Swal.fire({
+                icon: "error",
+                title: "فشل تسجيل الدخول",
+                text: data?.message || "لم يتم استلام رمز الدخول من الخادم",
+            });
         } catch (error) {
             console.error("Login Error:", error);
             Swal.fire({
                 icon: "error",
                 title: "فشل تسجيل الدخول",
-                text: error.response?.data?.message || "تأكد من صحة البريد الإلكتروني وكلمة المرور",
+                text: getErrorMessage(error, "تأكد من صحة البريد الإلكتروني وكلمة المرور"),
             });
         } finally {
             setLoading(false);
@@ -50,7 +57,6 @@ function Login() {
         <div className="min-h-screen flex items-center justify-center bg-slate-50 p-6" dir="rtl">
             <div className="w-full max-w-md bg-white rounded-[2.5rem] shadow-2xl p-10 border border-gray-100">
                 
-                {/* Header */}
                 <div className="text-center mb-10">
                     <div className="w-20 h-20 bg-blue-600 rounded-3xl flex items-center justify-center mx-auto mb-4 shadow-xl shadow-blue-200">
                         <i className="fa-solid fa-shield-halved text-3xl text-white"></i>
@@ -59,10 +65,8 @@ function Login() {
                     <p className="text-slate-400 mt-2 font-medium italic">بوابة إدارة النظام</p>
                 </div>
 
-                {/* Form */}
                 <form onSubmit={handleLogin} className="space-y-6">
                     
-                    {/* Email Input */}
                     <div>
                         <label className="block text-sm font-bold text-slate-700 mb-2 mr-1">البريد الإلكتروني</label>
                         <div className="relative">
@@ -78,7 +82,6 @@ function Login() {
                         </div>
                     </div>
 
-                    {/* Password Input */}
                     <div>
                         <label className="block text-sm font-bold text-slate-700 mb-2 mr-1">كلمة المرور</label>
                         <div className="relative">
@@ -94,7 +97,6 @@ function Login() {
                         </div>
                     </div>
 
-                    {/* Submit Button */}
                     <button 
                         type="submit" 
                         disabled={loading}

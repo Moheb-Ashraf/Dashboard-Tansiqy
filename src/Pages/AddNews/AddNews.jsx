@@ -1,20 +1,17 @@
 import { useState } from "react";
-import axios from "axios";
 import Swal from "sweetalert2";
 import { useNavigate } from "react-router-dom";
+import { api, getErrorMessage } from "../../api/client";
 
 function AddNews() {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
 
-    // data structure based on swagger
     const [newsData, setNewsData] = useState({
         title: "",
-        date: new Date().toISOString().split('T')[0], // default to today
+        date: new Date().toISOString().split('T')[0],
         description: ""
     });
-
-    const token = localStorage.getItem("adminToken");
 
     async function handleSubmit(e) {
         e.preventDefault();
@@ -22,23 +19,19 @@ function AddNews() {
 
         const dataToSend = {
             ...newsData,
-            // convert date to ISO format required by API
-            date: new Date(newsData.date).toISOString() 
+            date: new Date(newsData.date).toISOString()
         };
 
         try {
-            await axios.post("/api/proxy?path=api/News", dataToSend, {
-                headers: { 
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
+            await api.post("api/News", dataToSend, {
+                headers: { 'Content-Type': 'application/json' }
             });
 
             Swal.fire("نجاح", "تم نشر الخبر بنجاح", "success");
             navigate("/admin/news");
         } catch (error) {
             console.error(error);
-            Swal.fire("خطأ", "فشل في نشر الخبر، تأكد من الصلاحيات", "error");
+            Swal.fire("خطأ", getErrorMessage(error, "فشل في نشر الخبر، تأكد من الصلاحيات"), "error");
         } finally {
             setLoading(false);
         }
@@ -62,6 +55,7 @@ function AddNews() {
                         type="text" 
                         placeholder="أدخل عنواناً جذاباً للخبر..."
                         className="w-full p-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-purple-500 transition-all"
+                        value={newsData.title}
                         onChange={(e) => setNewsData({...newsData, title: e.target.value})}
                     />
                 </div>
@@ -83,6 +77,7 @@ function AddNews() {
                         required 
                         placeholder="اكتب محتوى الخبر بالتفصيل هنا..."
                         className="w-full p-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-purple-500 min-h-48"
+                        value={newsData.description}
                         onChange={(e) => setNewsData({...newsData, description: e.target.value})}
                     ></textarea>
                 </div>

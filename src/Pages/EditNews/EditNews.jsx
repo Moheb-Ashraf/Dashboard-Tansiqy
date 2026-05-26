@@ -1,31 +1,36 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
+import { api, getErrorMessage } from "../../api/client";
 import AdminLoading from "../../Components/AdminLoading";
 
 function EditNews() {
-    const { id } = useParams(); // news id from url
+    const { id } = useParams();
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
     const [fetching, setFetching] = useState(true);
 
     const [newsData, setNewsData] = useState({
-        id: parseInt(id),
+        id: parseInt(id, 10),
         title: "",
         date: "",
         description: ""
     });
 
-    const token = localStorage.getItem("adminToken");
-
-    // fetch current news data
     useEffect(() => {
         async function fetchNewsDetail() {
             try {
                 setFetching(true);
-                const { data } = await axios.get("/api/proxy?path=api/News");
-                const currentNews = data.find(n => n.id === parseInt(id));
+                let currentNews = null;
+
+                try {
+                    const { data } = await api.get(`api/News/${id}`);
+                    currentNews = data;
+                } catch {
+                    const { data } = await api.get("api/News");
+                    const list = Array.isArray(data) ? data : [];
+                    currentNews = list.find(n => n.id === parseInt(id, 10));
+                }
 
                 if (currentNews) {
                     setNewsData({
@@ -34,36 +39,33 @@ function EditNews() {
                         date: currentNews.date ? currentNews.date.split('T')[0] : "",
                         description: currentNews.description || ""
                     });
+                } else {
+                    Swal.fire("خطأ", "لم يتم العثور على الخبر", "error");
+                    navigate("/admin/news");
                 }
             } catch (error) {
                 console.error(error);
-                Swal.fire("Error", "Failed to fetch news data", "error");
+                Swal.fire("خطأ", getErrorMessage(error, "تعذر جلب بيانات الخبر"), "error");
             } finally {
                 setFetching(false);
             }
         }
 
         fetchNewsDetail();
-    }, [id]);
+    }, [id, navigate]);
 
-    // handle patch request
     async function handleUpdate(e) {
         e.preventDefault();
         setLoading(true);
 
         const dataToPatch = {
             ...newsData,
-            // convert back to ISO string for API
             date: new Date(newsData.date).toISOString()
         };
 
         try {
-            // PATCH request to /api/News/{id}
-            await axios.patch(`/api/proxy?path=api/News/${id}`, dataToPatch, {
-                headers: { 
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
+            await api.patch(`api/News/${id}`, dataToPatch, {
+                headers: { 'Content-Type': 'application/json' }
             });
 
             Swal.fire({
@@ -76,7 +78,7 @@ function EditNews() {
             setTimeout(() => navigate("/admin/news"), 2000);
         } catch (error) {
             console.error(error);
-            Swal.fire("Error", "Failed to update news", "error");
+            Swal.fire("خطأ", getErrorMessage(error, "فشل تحديث الخبر"), "error");
         } finally {
             setLoading(false);
         }

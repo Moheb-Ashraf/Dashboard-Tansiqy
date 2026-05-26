@@ -1,5 +1,5 @@
-import axios from "axios";
 import { useEffect, useState } from "react";
+import { api } from "../../api/client";
 import AdminLoading from "../../Components/AdminLoading";
 
 function AdminStats() {
@@ -19,16 +19,16 @@ function AdminStats() {
             // get universities
             const types = [1, 2, 3, 4, 5, 6];
             
-            const requests = types.map(t => 
-                axios.get(`/api/proxy?path=api/Universities/type/${t}`).catch(() => ({ data: [] }))
+            const requests = types.map(t =>
+                api.get(`api/Universities/type/${t}`).catch(() => ({ data: [] }))
             );
 
             const responses = await Promise.all(requests);
-            const allUniversities = responses.flatMap(res => res.data);
+            const allUniversities = responses.flatMap(res => (Array.isArray(res.data) ? res.data : []));
             const totalColleges = allUniversities.reduce((sum, uni) => sum + (uni.collegesCount || 0), 0);
             let totalNews = 0;
             try {
-                const resNews = await axios.get("/api/proxy?path=api/News").catch(() => ({ data: [] }));
+                const resNews = await api.get("api/News").catch(() => ({ data: [] }));
                 totalNews = Array.isArray(resNews.data) ? resNews.data.length : 0;
             } 
             catch (error) { console.log("News API not available", error); }

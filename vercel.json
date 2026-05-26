@@ -6,8 +6,8 @@
       "destination": "/api/proxy.js"
     },
     {
-      "source": "/admin/(.*)",
-      "destination": "/"
+      "source": "/((?!api/).*)",
+      "destination": "/index.html"
     }
   ]
 }

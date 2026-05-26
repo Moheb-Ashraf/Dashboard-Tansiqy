@@ -1,7 +1,7 @@
-import axios from "axios";
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
+import { api, getErrorMessage } from "../../api/client";
 import AdminLoading from "../../Components/AdminLoading";
 
 
@@ -37,16 +37,16 @@ function AddCollege() {
     async function fetchUniversities() {
         try {
             const types = [1, 2, 3, 4, 5, 6];
-            const requests = types.map(t => axios.get(`/api/proxy?path=api/Universities/type/${t}`).catch(() => ({ data: [] })));
+            const requests = types.map(t => api.get(`api/Universities/type/${t}`).catch(() => ({ data: [] })));
             const responses = await Promise.all(requests);
-            setUniversities(responses.flatMap(res => res.data));
+            setUniversities(responses.flatMap(res => (Array.isArray(res.data) ? res.data : [])));
         } finally { setFetchingUnis(false); }
     }
 
     useEffect(() => { fetchUniversities(); }, []);
     useEffect(() => {
     if (location.state?.universityId) {
-        setFormData(prev => ({ ...prev, universityId: location.state.universityId }));
+        setFormData(prev => ({ ...prev, universityId: String(location.state.universityId) }));
     }
 }, [location.state]);
 
@@ -73,7 +73,6 @@ function AddCollege() {
     if (!formData.universityId) return Swal.fire("تنبيه", "يرجى اختيار الجامعة أولاً", "warning");
 
     setLoading(true);
-    const token = localStorage.getItem("adminToken");
 
     // fix url 
     let formattedWebsite = formData.officialWebsite.trim();
@@ -108,11 +107,8 @@ function AddCollege() {
 
     try {
 
-        await axios.post("/api/proxy?path=api/Universities/colleges", dataToSend, {
-            headers: { 
-                'Authorization': `Bearer ${token}`, 
-                'Content-Type': 'application/json' 
-            }
+        await api.post("api/Universities/colleges", dataToSend, {
+            headers: { 'Content-Type': 'application/json' }
         });
 
         Swal.fire("نجاح!", "تمت إضافة الكلية والأقسام بنجاح", "success");
@@ -120,19 +116,10 @@ function AddCollege() {
     } catch (error) {
         console.error("تفاصيل خطأ السيرفر:", error.response?.data);
         
-        const serverErrors = error.response?.data?.errors;
-        let detailedMsg = "";
-        
-        if (serverErrors) {
-            detailedMsg = Object.values(serverErrors).flat().join(" | ");
-        } else {
-            detailedMsg = error.response?.data?.title || "تأكد من البيانات المدخلة";
-        }
-
         Swal.fire({
             icon: "error",
-            title: "فشل الإرسال (خطأ 400)",
-            text: detailedMsg,
+            title: "فشل الإرسال",
+            text: getErrorMessage(error, "تأكد من البيانات المدخلة"),
         });
     } finally {
         setLoading(false);

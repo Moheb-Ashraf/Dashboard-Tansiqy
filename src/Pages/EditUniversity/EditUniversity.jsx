@@ -1,7 +1,7 @@
-import axios from "axios";
 import { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import Swal from "sweetalert2";
+import { api, getErrorMessage } from "../../api/client";
 import AdminLoading from "../../Components/AdminLoading";
 
 function EditUniversity() {
@@ -10,6 +10,8 @@ function EditUniversity() {
     const [loading, setLoading] = useState(false);
     const [fetching, setFetching] = useState(true);
     const [colleges, setColleges] = useState([]);
+    const [universityTypes, setUniversityTypes] = useState([]);
+    const [typesLoading, setTypesLoading] = useState(true);
 
     const [formData, setFormData] = useState({
         id: parseInt(id),
@@ -25,10 +27,30 @@ function EditUniversity() {
         description: ""
     });
 
+    useEffect(() => {
+        (async () => {
+            try {
+                setTypesLoading(true);
+                const { data } = await api.get("api/Universities/types");
+                const mapped = (Array.isArray(data) ? data : []).map((t, i) => ({
+                    id: i + 1,
+                    typeNameAr: t.typeNameAr,
+                    totalUniversities: t.totalUniversities ?? 0,
+                }));
+                setUniversityTypes(mapped);
+            } catch (error) {
+                console.error(error);
+                setUniversityTypes([]);
+            } finally {
+                setTypesLoading(false);
+            }
+        })();
+    }, []);
+
     const fetchCurrentData = useCallback(async () => {
         try {
             setFetching(true);
-            const { data } = await axios.get(`/api/proxy?path=api/Universities/${id}`);
+            const { data } = await api.get(`api/Universities/${id}`);
             setFormData({
                 id: data.id,
                 nameAr: data.nameAr || "",
@@ -67,14 +89,7 @@ function EditUniversity() {
 
         if (result.isConfirmed) {
             try {
-                const token = localStorage.getItem("adminToken");
-                
-                await axios.delete(`/api/proxy?path=api/Universities/colleges/${collegeId}`, {
-                    headers: { 
-                        'Authorization': `Bearer ${token}`, 
-                        'accept': '*/*' 
-                    }
-                });
+                await api.delete(`api/Universities/colleges/${collegeId}`);
 
                 //  to update the front when update data 
                 setColleges(colleges.filter(c => c.id !== collegeId));
@@ -82,11 +97,7 @@ function EditUniversity() {
                 Swal.fire('تم الحذف!', 'تمت إزالة الكلية بنجاح من قاعدة البيانات.', 'success');
             } catch (error) {
                 console.error("Delete Error:", error.response?.data);
-                const errorMsg = error.response?.status === 401 
-                    ? "غير مصرح لك بالحذف (انتهت الجلسة)" 
-                    : "حدث خطأ أثناء الحذف، ربما الكلية غير موجودة";
-                
-                Swal.fire('فشل الحذف', errorMsg, 'error');
+                Swal.fire('فشل الحذف', getErrorMessage(error, "حدث خطأ أثناء الحذف، ربما الكلية غير موجودة"), 'error');
             }
         }
     }
@@ -99,14 +110,23 @@ function EditUniversity() {
         e.preventDefault();
         setLoading(true);
 
-        const token = localStorage.getItem("adminToken");
-        
         try {
-            const response = await axios.put("/api/proxy?path=api/Universities", formData, {
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
+            let formattedWebsite = (formData.officialWebsite || "").trim();
+            if (formattedWebsite === "") formattedWebsite = null;
+            else if (!formattedWebsite.startsWith("http")) formattedWebsite = `https://${formattedWebsite}`;
+
+            const payload = {
+                ...formData,
+                id: parseInt(formData.id),
+                type: parseInt(formData.type),
+                governorate: parseInt(formData.governorate),
+                lastYearCoordination: parseFloat(formData.lastYearCoordination) || 0,
+                fees: parseFloat(formData.fees) || 0,
+                officialWebsite: formattedWebsite,
+            };
+
+            const response = await api.put("api/Universities", payload, {
+                headers: { "Content-Type": "application/json" }
             });
 
             if (response.status === 200) {
@@ -123,7 +143,7 @@ function EditUniversity() {
             Swal.fire({
                 icon: 'error',
                 title: 'فشل التحديث',
-                text: error.response?.status === 401 ? "غير مصرح لك بالتعديل" : "حدث خطأ أثناء الحفظ",
+                text: getErrorMessage(error, "حدث خطأ أثناء الحفظ"),
             });
         } finally {
             setLoading(false);
@@ -175,13 +195,23 @@ function EditUniversity() {
                                 className="w-full p-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
                                 value={formData.type}
                                 onChange={(e) => setFormData({...formData, type: parseInt(e.target.value)})}
+                                disabled={typesLoading}
                             >
-                                <option value="1">حكومية</option>
-                                <option value="2">خاصة</option>
-                                <option value="3">أهلية</option>
-                                <option value="4">معهد عالي</option>
-                                <option value="5">أجنبية</option>
-                                <option value="6">تكنولوجية</option>
+                                {universityTypes.length > 0 ? (
+                                    universityTypes.map((t) => (
+                                        <option key={t.id} value={t.id}>{t.typeNameAr}</option>
+                                    ))
+                                ) : (
+                                    <>
+                                        <option value="1">حكومية</option>
+                                        <option value="2">خاصة</option>
+                                        <option value="3">أهلية</option>
+                                        <option value="4">معهد عالي</option>
+                                        <option value="5">أجنبية</option>
+                                        <option value="6">تكنولوجية</option>
+                                        <option value="7">ذات طبيعة خاصة</option>
+                                    </>
+                                )}
                             </select>
                         </div>
                         <div>
