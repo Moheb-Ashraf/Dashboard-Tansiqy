@@ -12,6 +12,9 @@ function EditUniversity() {
     const [colleges, setColleges] = useState([]);
     const [universityTypes, setUniversityTypes] = useState([]);
     const [typesLoading, setTypesLoading] = useState(true);
+    const [imageFile, setImageFile] = useState(null);
+    const [removeImage, setRemoveImage] = useState(false);
+    const [currentImageUrl, setCurrentImageUrl] = useState("");
 
     const [formData, setFormData] = useState({
         id: parseInt(id),
@@ -50,7 +53,7 @@ function EditUniversity() {
     const fetchCurrentData = useCallback(async () => {
         try {
             setFetching(true);
-            const { data } = await api.get(`api/Universities/${id}`);
+            const { data } = await api.get(`api/Universities/${id}?_=${Date.now()}`);
             setFormData({
                 id: data.id,
                 nameAr: data.nameAr || "",
@@ -65,6 +68,9 @@ function EditUniversity() {
                 description: data.description || ""
             });
             setColleges(data.colleges || []);
+            setCurrentImageUrl(data.image || "");
+            setImageFile(null);
+            setRemoveImage(false);
         } catch (error) {
             console.error(error);
             Swal.fire("خطأ", "تعذر جلب بيانات الجامعة", "error");
@@ -111,23 +117,34 @@ function EditUniversity() {
         setLoading(true);
 
         try {
+            const uniId = parseInt(id, 10);
             let formattedWebsite = (formData.officialWebsite || "").trim();
-            if (formattedWebsite === "") formattedWebsite = null;
-            else if (!formattedWebsite.startsWith("http")) formattedWebsite = `https://${formattedWebsite}`;
+            if (formattedWebsite && !formattedWebsite.startsWith("http")) {
+                formattedWebsite = `https://${formattedWebsite}`;
+            }
 
-            const payload = {
-                ...formData,
-                id: parseInt(formData.id),
-                type: parseInt(formData.type),
-                governorate: parseInt(formData.governorate),
-                lastYearCoordination: parseFloat(formData.lastYearCoordination) || 0,
-                fees: parseFloat(formData.fees) || 0,
-                officialWebsite: formattedWebsite,
-            };
+            // Swagger: PUT /api/Universities/{id} + multipart/form-data (PascalCase)
+            const payload = new FormData();
+            payload.append("Id", String(uniId));
+            payload.append("NameAr", formData.nameAr || "");
+            payload.append("NameEn", formData.nameEn || "");
+            payload.append("Type", String(parseInt(formData.type, 10)));
+            payload.append("OfficialWebsite", formattedWebsite);
+            payload.append("Location", formData.location || "");
+            payload.append("Governorate", String(parseInt(formData.governorate, 10)));
+            payload.append("LastYearCoordination", String(parseFloat(formData.lastYearCoordination) || 0));
+            payload.append("Fees", String(parseFloat(formData.fees) || 0));
+            payload.append("InformationSources", formData.informationSources || "");
+            payload.append("Description", formData.description || "");
 
-            const response = await api.put("api/Universities", payload, {
-                headers: { "Content-Type": "application/json" }
-            });
+            if (imageFile) {
+                payload.append("ImageFile", imageFile);
+            }
+            if (removeImage) {
+                payload.append("RemoveImage", "true");
+            }
+
+            const response = await api.put(`api/Universities/${uniId}`, payload);
 
             if (response.status === 200) {
                 Swal.fire({
@@ -137,7 +154,7 @@ function EditUniversity() {
                     timer: 2000,
                     showConfirmButton: false
                 });
-                
+                await fetchCurrentData();
             }
         } catch (error) {
             Swal.fire({
@@ -232,13 +249,24 @@ function EditUniversity() {
                         </div>
                     </div>
 
-                    <div>
-                        <label className="block text-sm font-bold mb-2">الموقع الرسمي</label>
-                        <input 
-                            type="text" value={formData.officialWebsite}
-                            className="w-full p-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 font-sans"
-                            onChange={(e) => setFormData({...formData, officialWebsite: e.target.value})}
-                        />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label className="block text-sm font-bold mb-2">الموقع الرسمي</label>
+                            <input 
+                                type="text" value={formData.officialWebsite}
+                                className="w-full p-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 font-sans"
+                                onChange={(e) => setFormData({...formData, officialWebsite: e.target.value})}
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-bold mb-2">الموقع الجغرافي</label>
+                            <input 
+                                type="text" value={formData.location}
+                                placeholder="مثال: مدينة نصر"
+                                className="w-full p-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 font-sans"
+                                onChange={(e) => setFormData({...formData, location: e.target.value})}
+                            />
+                        </div>
                     </div>
                 </div>
 
@@ -295,13 +323,48 @@ function EditUniversity() {
                 </div>
 
                 {/* Description Textarea */}
-                <div className="bg-white p-8 md:p-12 rounded-[2.5rem] shadow-sm border border-slate-100">
-                    <label className="block text-sm font-bold mb-4">وصف الجامعة</label>
-                    <textarea 
-                        className="w-full p-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 min-h-48"
-                        value={formData.description}
-                        onChange={(e) => setFormData({...formData, description: e.target.value})}
-                    ></textarea>
+                <div className="bg-white p-8 md:p-12 rounded-[2.5rem] shadow-sm border border-slate-100 space-y-6">
+                    <div>
+                        <label className="block text-sm font-bold mb-4">وصف الجامعة</label>
+                        <textarea 
+                            className="w-full p-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 min-h-48"
+                            value={formData.description}
+                            onChange={(e) => setFormData({...formData, description: e.target.value})}
+                        ></textarea>
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-bold mb-2">صورة الجامعة</label>
+                        {currentImageUrl && !removeImage && (
+                            <img
+                                src={currentImageUrl}
+                                alt="صورة الجامعة الحالية"
+                                className="w-28 h-28 object-cover rounded-2xl border border-slate-200 mb-3"
+                            />
+                        )}
+                        <input
+                            type="file"
+                            accept="image/*"
+                            className="w-full text-sm text-slate-600 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                            onChange={(e) => {
+                                setImageFile(e.target.files?.[0] || null);
+                                if (e.target.files?.[0]) setRemoveImage(false);
+                            }}
+                        />
+                        {currentImageUrl && (
+                            <label className="mt-3 flex items-center gap-2 text-sm text-slate-600 cursor-pointer">
+                                <input
+                                    type="checkbox"
+                                    checked={removeImage}
+                                    onChange={(e) => {
+                                        setRemoveImage(e.target.checked);
+                                        if (e.target.checked) setImageFile(null);
+                                    }}
+                                />
+                                حذف الصورة الحالية
+                            </label>
+                        )}
+                    </div>
                 </div>
 
                 {/* Save Button */}
